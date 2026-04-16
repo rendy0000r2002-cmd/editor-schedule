@@ -15,7 +15,7 @@ st.markdown('<meta http-equiv="refresh" content="300">', unsafe_allow_html=True)
 
 SPREADSHEET_ID = '1_naCZzjQ3G7W28RyaRe-ZuTEsr-sjeTBBf912pAJB-M'
 SHEET_NAME = '2024年12月'
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 EDITOR_MAP = {
     "jia": "游承佳", "Jia": "游承佳", "JIA": "游承佳", "承佳": "游承佳",
@@ -48,8 +48,8 @@ def get_credentials():
         )
         creds.refresh(Request())
         return creds
-    except Exception:
-        pass
+    except Exception as ex:
+        st.warning(f"Secrets 憑證錯誤：{ex}")
     # local fallback
     import os
     token_path = r'C:\Users\rendy\token.json'
