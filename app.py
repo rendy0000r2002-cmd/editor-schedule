@@ -3,7 +3,7 @@ import pandas as pd
 import re
 import io
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 st.set_page_config(
     page_title="剪輯行程表",
@@ -199,7 +199,7 @@ def load_and_parse():
 
 st.title("🎬 剪輯行程表")
 
-now = datetime.now()
+now = datetime.now(timezone(timedelta(hours=8)))
 today_str = now.strftime("%m/%d").lstrip("0").replace("/0", "/")  # "04/15" → "4/15"
 today_padded = now.strftime("%m/%d")  # "04/15"
 
