@@ -100,8 +100,14 @@ def extract_editor(text) -> str | None:
     m = re.search(r"[（(]([^）)\n]+)[）)]", text)
     if m:
         raw = m.group(1).strip()
+        # 1) 完整字串比對（最優先）
         for key, val in EDITOR_MAP.items():
             if raw == key or raw.lower() == key.lower():
+                return val
+        # 2) 首個 token 比對（例如「賢 可晚點交」→ 取「賢」）
+        first_token = re.split(r"[\s　,，、]+", raw, maxsplit=1)[0]
+        for key, val in EDITOR_MAP.items():
+            if first_token == key or first_token.lower() == key.lower():
                 return val
     return None
 
