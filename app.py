@@ -293,15 +293,56 @@ section.main > div.block-container {
     border-color: #8B6F47;
     color: #3E2723;
 }
+/* Streamlit 預設文字強制深色 */
+.stApp, .stApp p, .stApp span, .stApp div,
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p,
+[data-testid="stMarkdownContainer"] p,
+.stMarkdown, .stMarkdown p {
+    color: #3E2723;
+}
+[data-testid="stWidgetLabel"] label,
+[data-testid="stWidgetLabel"] p {
+    color: #5D4037 !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.05em;
+}
 /* 多選框 */
 [data-baseweb="select"] > div {
     background: #FFFDF7 !important;
     border-color: #D7CCBE !important;
     border-radius: 6px !important;
 }
+[data-baseweb="select"] > div > div {
+    color: #3E2723 !important;
+}
+[data-baseweb="select"] input {
+    color: #3E2723 !important;
+}
+[data-baseweb="select"] [aria-label="open"] svg,
+[data-baseweb="select"] svg {
+    fill: #8B6F47 !important;
+}
 [data-baseweb="tag"] {
     background: #E8DCC4 !important;
     color: #3E2723 !important;
+}
+[data-baseweb="tag"] span {
+    color: #3E2723 !important;
+}
+[data-baseweb="popover"] li,
+[data-baseweb="menu"] li {
+    color: #3E2723 !important;
+    background: #FFFDF7 !important;
+}
+[data-baseweb="popover"] li:hover,
+[data-baseweb="menu"] li:hover {
+    background: #EFE4D0 !important;
+}
+/* 佔位符 */
+::placeholder {
+    color: #A89080 !important;
+    opacity: 1;
 }
 /* 分隔線 */
 hr {
@@ -312,27 +353,42 @@ hr {
 .today-label {
     display: inline-block;
     background: #8B4513;
-    color: #FFFDF7;
-    padding: 4px 14px;
-    border-radius: 3px;
-    font-size: 0.9rem;
-    letter-spacing: 0.12em;
+    color: #FFFDF7 !important;
+    padding: 6px 18px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
     margin-bottom: 0.8rem;
+    box-shadow: 0 2px 4px rgba(93, 64, 55, 0.15);
+}
+.today-label * { color: #FFFDF7 !important; }
+.today-empty {
+    background: #FFFDF7;
+    border: 1px dashed #C7B299;
+    padding: 12px 18px;
+    border-radius: 6px;
+    color: #8B6F47 !important;
+    font-size: 0.92rem;
+    margin-top: 6px;
 }
 .today-item {
     background: #FFFDF7;
-    border-left: 3px solid #A0522D;
-    padding: 10px 14px;
-    margin: 6px 0;
-    border-radius: 0 4px 4px 0;
-    font-size: 0.98rem;
-    color: #3E2723;
-    box-shadow: 0 1px 2px rgba(93, 64, 55, 0.06);
+    border-left: 4px solid #A0522D;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 1rem;
+    color: #3E2723 !important;
+    box-shadow: 0 1px 3px rgba(93, 64, 55, 0.08);
 }
+.today-item * { color: #3E2723; }
 .today-item strong {
-    color: #8B4513;
-    margin-right: 6px;
+    color: #8B4513 !important;
+    margin-right: 10px;
     font-weight: 700;
+    display: inline-block;
+    min-width: 70px;
 }
 /* 剪輯師卡片 */
 .editor-card {
@@ -476,13 +532,16 @@ if selected_months:
 
 st.markdown("---")
 
-# ── Today highlight ──────────────────────────────────────────────────────
-today_rows = filtered[
-    filtered["拍攝日期"].isin([today_str, today_padded])
-]
-if not today_rows.empty:
-    st.markdown(f'<span class="today-label">今 日 ・ {today_str}</span>', unsafe_allow_html=True)
-    for _, r in today_rows.iterrows():
+# ── Today highlight（永遠顯示，不受篩選影響） ────────────────────────────
+today_rows_all = df[df["拍攝日期"].isin([today_str, today_padded])]
+st.markdown(f'<div class="today-label">今 日 ・ {today_str}</div>', unsafe_allow_html=True)
+if today_rows_all.empty:
+    st.markdown(
+        '<div class="today-empty">今天沒有剪輯案件</div>',
+        unsafe_allow_html=True,
+    )
+else:
+    for _, r in today_rows_all.iterrows():
         link_html = ""
         if r["連結"]:
             link_html = f' <a class="case-link" href="{r["連結"]}" target="_blank">雲端</a>'
@@ -490,7 +549,7 @@ if not today_rows.empty:
             f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
             unsafe_allow_html=True,
         )
-    st.markdown("---")
+st.markdown("---")
 
 # ── Per-editor cards ─────────────────────────────────────────────────────
 if not selected:
