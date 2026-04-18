@@ -242,9 +242,186 @@ def load_and_parse():
     return result_df, None
 
 
-# ── UI ──────────────────────────────────────────────────────────────────
+# ── Theme / CSS ──────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+/* 溫暖紙質風 */
+html, body, [class*="css"] {
+    font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+}
+.stApp {
+    background: #F5EEDC;
+    background-image:
+        radial-gradient(rgba(139, 111, 71, 0.04) 1px, transparent 1px),
+        radial-gradient(rgba(139, 111, 71, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px, 48px 48px;
+    background-position: 0 0, 12px 12px;
+}
+section.main > div.block-container {
+    padding-top: 2.5rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
+}
+/* 主標 */
+.app-title {
+    font-size: 2.1rem;
+    color: #3E2723;
+    letter-spacing: 0.15em;
+    margin: 0;
+    padding-bottom: 0.2rem;
+    border-bottom: 2px double #8B6F47;
+    display: inline-block;
+}
+.app-sub {
+    color: #795548;
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    letter-spacing: 0.08em;
+}
+/* 按鈕 */
+.stButton > button {
+    background: #FFFDF7;
+    color: #5D4037;
+    border: 1px solid #C7B299;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+}
+.stButton > button:hover {
+    background: #EFE4D0;
+    border-color: #8B6F47;
+    color: #3E2723;
+}
+/* 多選框 */
+[data-baseweb="select"] > div {
+    background: #FFFDF7 !important;
+    border-color: #D7CCBE !important;
+    border-radius: 6px !important;
+}
+[data-baseweb="tag"] {
+    background: #E8DCC4 !important;
+    color: #3E2723 !important;
+}
+/* 分隔線 */
+hr {
+    border-top: 1px dashed #B8A68A !important;
+    margin: 1.5rem 0 !important;
+}
+/* 今日 區塊 */
+.today-label {
+    display: inline-block;
+    background: #8B4513;
+    color: #FFFDF7;
+    padding: 4px 14px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.8rem;
+}
+.today-item {
+    background: #FFFDF7;
+    border-left: 3px solid #A0522D;
+    padding: 10px 14px;
+    margin: 6px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.98rem;
+    color: #3E2723;
+    box-shadow: 0 1px 2px rgba(93, 64, 55, 0.06);
+}
+.today-item strong {
+    color: #8B4513;
+    margin-right: 6px;
+    font-weight: 700;
+}
+/* 剪輯師卡片 */
+.editor-card {
+    background: #FFFDF7;
+    border: 1px solid #D7CCBE;
+    border-radius: 8px;
+    padding: 18px 20px 14px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px rgba(93, 64, 55, 0.05);
+}
+.editor-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid #EDE3D0;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+.editor-name {
+    font-size: 1.25rem;
+    color: #3E2723;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+.editor-count {
+    background: #EFE4D0;
+    color: #6D4C41;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+}
+.case-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dotted #EDE3D0;
+    font-size: 0.95rem;
+}
+.case-row:last-child { border-bottom: none; }
+.case-date {
+    color: #8B6F47;
+    font-family: "Courier New", monospace;
+    font-size: 0.85rem;
+    min-width: 52px;
+    margin-right: 12px;
+}
+.case-name {
+    color: #3E2723;
+    flex: 1;
+}
+.case-link {
+    color: #8B6F47;
+    font-size: 0.78rem;
+    text-decoration: none;
+    border: 1px solid #D7CCBE;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+.case-link:hover {
+    background: #EFE4D0;
+    color: #3E2723;
+}
+.case-row.today .case-date,
+.case-row.today .case-name {
+    color: #8B4513;
+    font-weight: 700;
+}
+.case-row.today .case-date::before {
+    content: "●";
+    color: #A0522D;
+    margin-right: 4px;
+    font-size: 0.7rem;
+}
+.empty-hint {
+    background: #FFFDF7;
+    border: 1px dashed #C7B299;
+    border-radius: 6px;
+    padding: 16px 20px;
+    color: #8B6F47;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.title("🎬 剪輯行程表")
+# ── UI ──────────────────────────────────────────────────────────────────
 
 now = datetime.now(timezone(timedelta(hours=8)))
 today_str = now.strftime("%m/%d").lstrip("0").replace("/0", "/")
@@ -252,9 +429,14 @@ today_padded = now.strftime("%m/%d")
 
 col_title, col_btn = st.columns([5, 1])
 with col_title:
-    st.caption(f"每 5 分鐘自動更新 ｜ 最後載入：{now.strftime('%Y-%m-%d %H:%M')} ｜ 今天 {today_str}")
+    st.markdown('<h1 class="app-title">剪 輯 行 程 表</h1>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="app-sub">每 5 分鐘自動更新 ・ 最後載入 {now.strftime("%Y-%m-%d %H:%M")} ・ 今天 {today_str}</div>',
+        unsafe_allow_html=True,
+    )
 with col_btn:
-    if st.button("🔄 重新載入", use_container_width=True):
+    st.write("")
+    if st.button("重新載入", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
@@ -266,6 +448,7 @@ if df is None:
 
 all_editors = sorted(df["剪輯"].unique().tolist())
 
+st.markdown("<br>", unsafe_allow_html=True)
 col_f1, col_f2 = st.columns([2, 3])
 with col_f1:
     selected = st.multiselect(
@@ -298,21 +481,23 @@ today_rows = filtered[
     filtered["拍攝日期"].isin([today_str, today_padded])
 ]
 if not today_rows.empty:
-    st.subheader(f"📅 今日 {today_str}")
+    st.markdown(f'<span class="today-label">今 日 ・ {today_str}</span>', unsafe_allow_html=True)
     for _, r in today_rows.iterrows():
         link_html = ""
         if r["連結"]:
-            link_html = f' &nbsp;<a href="{r["連結"]}" target="_blank" style="color:#555;font-size:0.85rem;">雲端連結</a>'
+            link_html = f' <a class="case-link" href="{r["連結"]}" target="_blank">雲端</a>'
         st.markdown(
-            f'<p style="color:#8B0000; font-size:1rem; margin:4px 0;">'
-            f'<strong>{r["剪輯"]}</strong> — {r["案子"]}{link_html}</p>',
+            f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
             unsafe_allow_html=True,
         )
     st.markdown("---")
 
 # ── Per-editor cards ─────────────────────────────────────────────────────
 if not selected:
-    st.markdown("#### 請在上方選擇剪輯師")
+    st.markdown(
+        '<div class="empty-hint">請在上方選擇剪輯師，查看個別案件</div>',
+        unsafe_allow_html=True,
+    )
     st.stop()
 
 show_editors = selected
@@ -326,18 +511,30 @@ for idx, editor in enumerate(show_editors):
     if edf.empty:
         continue
 
-    with cols[idx % 2]:
-        st.subheader(f"✂️ {editor}　{len(edf)} 案")
+    rows_html = ""
+    for _, row in edf.iterrows():
+        is_today = row["拍攝日期"] in (today_str, today_padded)
+        cls = "case-row today" if is_today else "case-row"
+        link_html = ""
+        if row["連結"]:
+            link_html = f'<a class="case-link" href="{row["連結"]}" target="_blank">雲端</a>'
+        rows_html += (
+            f'<div class="{cls}">'
+            f'<span class="case-date">{row["拍攝日期"]}</span>'
+            f'<span class="case-name">{row["案子"]}</span>'
+            f'{link_html}'
+            f'</div>'
+        )
 
-        for _, row in edf.iterrows():
-            is_today = row["拍攝日期"] in (today_str, today_padded)
-            color = "#8B0000" if is_today else "#333"
-            weight = "bold" if is_today else "normal"
-            link_html = ""
-            if row["連結"]:
-                link_html = f' <a href="{row["連結"]}" target="_blank" style="color:#888;font-size:0.8rem;">雲端</a>'
-            st.markdown(
-                f'<p style="color:{color}; font-weight:{weight}; font-size:0.95rem; margin:2px 0;">'
-                f'{row["拍攝日期"]} &nbsp;{row["案子"]}{link_html}</p>',
-                unsafe_allow_html=True,
-            )
+    card_html = (
+        '<div class="editor-card">'
+        '<div class="editor-head">'
+        f'<span class="editor-name">{editor}</span>'
+        f'<span class="editor-count">共 {len(edf)} 案</span>'
+        '</div>'
+        f'{rows_html}'
+        '</div>'
+    )
+
+    with cols[idx % 2]:
+        st.markdown(card_html, unsafe_allow_html=True)
