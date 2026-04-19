@@ -322,28 +322,28 @@ section.main > div.block-container {
     padding-bottom: 3rem;
     max-width: 1200px;
 }
-/* 品牌橫幅：深色高科技 + 金色光暈 */
+/* 品牌橫幅：紙質同色系 + 銅色金屬線條（高質感 / 高科技幾何） */
 .brand-banner {
     position: relative;
     margin: 0 0 1.6rem;
     padding: 1.6rem 2.2rem;
     background:
-        linear-gradient(135deg, #08101F 0%, #121B30 35%, #1C2744 50%, #121B30 65%, #08101F 100%);
+        linear-gradient(135deg, #FFFDF7 0%, #F8F1DE 50%, #FFFDF7 100%);
     border-radius: 2px;
     overflow: hidden;
     box-shadow:
-        0 6px 20px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(232, 212, 168, 0.18);
-    border-top: 1px solid rgba(232, 212, 168, 0.28);
-    border-bottom: 1px solid rgba(232, 212, 168, 0.22);
+        0 2px 8px rgba(93, 64, 55, 0.08),
+        inset 0 1px 0 rgba(255, 253, 247, 0.8);
+    border-top: 1px solid rgba(139, 111, 71, 0.45);
+    border-bottom: 1px solid rgba(139, 111, 71, 0.35);
 }
 .brand-banner::before {
     content: "";
     position: absolute;
     inset: 0;
     background:
-        repeating-linear-gradient(0deg, transparent 0, transparent 26px, rgba(200, 220, 255, 0.025) 26px, rgba(200, 220, 255, 0.025) 27px),
-        repeating-linear-gradient(90deg, transparent 0, transparent 26px, rgba(200, 220, 255, 0.025) 26px, rgba(200, 220, 255, 0.025) 27px);
+        repeating-linear-gradient(0deg, transparent 0, transparent 26px, rgba(139, 111, 71, 0.05) 26px, rgba(139, 111, 71, 0.05) 27px),
+        repeating-linear-gradient(90deg, transparent 0, transparent 26px, rgba(139, 111, 71, 0.05) 26px, rgba(139, 111, 71, 0.05) 27px);
     pointer-events: none;
     z-index: 1;
 }
@@ -354,7 +354,7 @@ section.main > div.block-container {
     right: -10%;
     width: 55%;
     height: 180%;
-    background: radial-gradient(ellipse at center, rgba(232, 212, 168, 0.12) 0%, rgba(232, 212, 168, 0.04) 35%, transparent 65%);
+    background: radial-gradient(ellipse at center, rgba(160, 82, 45, 0.08) 0%, rgba(160, 82, 45, 0.03) 35%, transparent 65%);
     pointer-events: none;
     z-index: 1;
 }
@@ -368,31 +368,31 @@ section.main > div.block-container {
 .brand-accent {
     width: 3px;
     height: 2rem;
-    background: linear-gradient(180deg, rgba(232, 212, 168, 0.2) 0%, #E8D4A8 50%, rgba(232, 212, 168, 0.2) 100%);
-    box-shadow: 0 0 10px rgba(232, 212, 168, 0.5);
+    background: linear-gradient(180deg, rgba(139, 111, 71, 0.2) 0%, #8B6F47 50%, rgba(139, 111, 71, 0.2) 100%);
+    box-shadow: 0 0 6px rgba(139, 111, 71, 0.35);
     flex-shrink: 0;
 }
 .brand-zh {
-    color: #E8D4A8;
+    color: #3E2723;
     font-size: 1.75rem;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.4em;
     font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
-    text-shadow: 0 0 22px rgba(232, 212, 168, 0.4);
+    text-shadow: 0 1px 0 rgba(255, 253, 247, 0.6);
     padding-right: 0.4em;
     line-height: 1;
 }
 .brand-divider {
     width: 1px;
     height: 1.6rem;
-    background: linear-gradient(180deg, transparent 0%, rgba(232, 212, 168, 0.6) 50%, transparent 100%);
+    background: linear-gradient(180deg, transparent 0%, rgba(139, 111, 71, 0.7) 50%, transparent 100%);
     flex-shrink: 0;
 }
 .brand-en {
-    color: #8FA3C0;
+    color: #8B6F47;
     font-size: 0.72rem;
     letter-spacing: 0.42em;
-    font-weight: 400;
+    font-weight: 500;
     padding-right: 0.42em;
     font-family: "Courier New", monospace;
     text-transform: uppercase;
@@ -402,7 +402,7 @@ section.main > div.block-container {
     position: absolute;
     width: 14px;
     height: 14px;
-    border-color: rgba(232, 212, 168, 0.55);
+    border-color: rgba(139, 111, 71, 0.6);
     z-index: 2;
 }
 .brand-corner.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
