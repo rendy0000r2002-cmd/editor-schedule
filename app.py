@@ -6,7 +6,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
 st.set_page_config(
-    page_title="剪輯行程表",
+    page_title="原初映像影音製作剪輯行程表",
     layout="wide",
     page_icon="🎬"
 )
@@ -299,9 +299,9 @@ section.main > div.block-container {
 }
 /* 主標 */
 .app-title {
-    font-size: 2.1rem;
+    font-size: 1.7rem;
     color: #3E2723;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.08em;
     margin: 0;
     padding-bottom: 0.2rem;
     border-bottom: 2px double #8B6F47;
@@ -565,7 +565,7 @@ today_padded = now.strftime("%m/%d")
 
 col_title, col_btn = st.columns([5, 1])
 with col_title:
-    st.markdown('<h1 class="app-title">剪 輯 行 程 表</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="app-title">原初映像影音製作 ・ 剪輯行程表</h1>', unsafe_allow_html=True)
     st.markdown(
         f'<div class="app-sub">每 5 分鐘自動更新 ・ 最後載入 {now.strftime("%Y-%m-%d %H:%M")} ・ 今天 {today_str}</div>',
         unsafe_allow_html=True,
