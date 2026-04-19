@@ -123,7 +123,7 @@ def remove_editor_tag(text) -> str:
 
 
 def pick_recent_sheet(service):
-    """挑選最新的 YYYY年M月 分頁（按年月排序，取最新有資料者）。"""
+    """挑選最新分頁：支援 YYYY年M月 與 YYYY年 兩種命名。"""
     try:
         meta = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
     except Exception:
@@ -131,16 +131,21 @@ def pick_recent_sheet(service):
     candidates = []
     for s in meta.get('sheets', []):
         title = s['properties'].get('title', '')
-        m = re.match(r'^(\d{4})年(\d{1,2})月$', title)
-        if not m:
-            continue
-        y, mo = int(m.group(1)), int(m.group(2))
         rc = s['properties'].get('gridProperties', {}).get('rowCount', 0)
-        candidates.append((y, mo, title, rc))
+        m1 = re.match(r'^(\d{4})年(\d{1,2})月$', title)
+        if m1:
+            y, mo = int(m1.group(1)), int(m1.group(2))
+            candidates.append((y, mo, title, rc))
+            continue
+        m2 = re.match(r'^(\d{4})年$', title)
+        if m2:
+            y = int(m2.group(1))
+            # 純年份排序權重 = 13，使其優先於同年的 YYYY年M月
+            candidates.append((y, 13, title, rc))
+            continue
     if not candidates:
         return None, None
     candidates.sort(key=lambda c: (c[0], c[1]), reverse=True)
-    # 優先挑 rowCount > 100 的（跳過空分頁）
     for y, mo, title, rc in candidates:
         if rc > 100:
             return title, (y, mo)
@@ -204,6 +209,15 @@ def load_and_parse():
     # 逐格掃描：從分頁名推定基準年份，遇到月份回轉就 +1
     now_tw = datetime.now(timezone(timedelta(hours=8)))
     running_year = base_ym[0] if base_ym else now_tw.year
+    # 若分頁名為「YYYY年」(mo=13 標記)，且首個日期列最小月份 >= 7，
+    # 代表分頁從上年年末開始，基準年份 -1。
+    if base_ym and base_ym[1] == 13 and date_row_indices:
+        first_row_months = [
+            int(ds.split('/')[0])
+            for _, ds in week_date_cols(grid[date_row_indices[0]])
+        ]
+        if first_row_months and min(first_row_months) >= 7:
+            running_year -= 1
     cell_dates = {}  # (dr, col_i) -> datetime
     prev_mo = None
     for dr in date_row_indices:
