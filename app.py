@@ -396,6 +396,36 @@ hr {
     display: inline-block;
     min-width: 70px;
 }
+/* 本週 區塊 */
+.week-label {
+    display: inline-block;
+    background: #6D4C41;
+    color: #FFFDF7 !important;
+    padding: 6px 18px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 2px 4px rgba(93, 64, 55, 0.15);
+}
+.week-label * { color: #FFFDF7 !important; }
+.week-day-header {
+    color: #5D4037;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin: 14px 0 4px 2px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #C7B299;
+}
+.week-day-header.is-today {
+    color: #8B4513;
+}
+.week-day-header.is-today::before {
+    content: "● ";
+    color: #A0522D;
+}
 /* 剪輯師卡片 */
 .editor-card {
     background: #FFFDF7;
@@ -555,6 +585,56 @@ else:
             f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
             unsafe_allow_html=True,
         )
+st.markdown("---")
+
+# ── This week（今天起 7 天，依日期分組，不受篩選影響） ────────────────────
+weekday_names = ['一', '二', '三', '四', '五', '六', '日']
+week_days = []
+for i in range(7):
+    d = now + timedelta(days=i)
+    week_days.append({
+        "date_obj": d,
+        "mmdd_short": d.strftime("%m/%d").lstrip("0").replace("/0", "/"),
+        "mmdd_padded": d.strftime("%m/%d"),
+        "weekday": weekday_names[d.weekday()],
+    })
+
+week_start_disp = week_days[0]["mmdd_short"]
+week_end_disp = week_days[-1]["mmdd_short"]
+st.markdown(
+    f'<div class="week-label">本 週 ・ {week_start_disp} ~ {week_end_disp}</div>',
+    unsafe_allow_html=True,
+)
+
+week_date_keys = {d["mmdd_short"] for d in week_days} | {d["mmdd_padded"] for d in week_days}
+week_rows_all = df[df["拍攝日期"].isin(week_date_keys)]
+
+if week_rows_all.empty:
+    st.markdown(
+        '<div class="today-empty">本週沒有剪輯案件</div>',
+        unsafe_allow_html=True,
+    )
+else:
+    for day in week_days:
+        day_rows = df[df["拍攝日期"].isin([day["mmdd_short"], day["mmdd_padded"]])]
+        if day_rows.empty:
+            continue
+        is_today_day = day["mmdd_padded"] == today_padded
+        header_cls = "week-day-header is-today" if is_today_day else "week-day-header"
+        today_tag = "（今日）" if is_today_day else ""
+        st.markdown(
+            f'<div class="{header_cls}">{day["mmdd_short"]}（{day["weekday"]}）{today_tag}</div>',
+            unsafe_allow_html=True,
+        )
+        for _, r in day_rows.iterrows():
+            link_html = ""
+            if r["連結"]:
+                link_html = f' <a class="case-link" href="{r["連結"]}" target="_blank">雲端</a>'
+            st.markdown(
+                f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
+                unsafe_allow_html=True,
+            )
+
 st.markdown("---")
 
 # ── Per-editor cards ─────────────────────────────────────────────────────
