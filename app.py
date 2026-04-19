@@ -209,15 +209,26 @@ def load_and_parse():
     # 逐格掃描：從分頁名推定基準年份，遇到月份回轉就 +1
     now_tw = datetime.now(timezone(timedelta(hours=8)))
     running_year = base_ym[0] if base_ym else now_tw.year
-    # 若分頁名為「YYYY年」(mo=13 標記)，且首個日期列最小月份 >= 7，
-    # 代表分頁從上年年末開始，基準年份 -1。
-    if base_ym and base_ym[1] == 13 and date_row_indices:
-        first_row_months = [
-            int(ds.split('/')[0])
-            for _, ds in week_date_cols(grid[date_row_indices[0]])
-        ]
-        if first_row_months and min(first_row_months) >= 7:
-            running_year -= 1
+
+    # 預掃描一輪，計算總回轉次數（for 純年份分頁用）
+    # 僅看每列前 7 個日期格，與主掃描一致
+    total_rollovers = 0
+    prev_mo_pre = None
+    for dr in date_row_indices:
+        for _, date_str in week_date_cols(grid[dr]):
+            try:
+                mo = int(date_str.split("/")[0])
+            except Exception:
+                continue
+            if prev_mo_pre is not None and mo < prev_mo_pre:
+                total_rollovers += 1
+            prev_mo_pre = mo
+
+    # 若分頁名為「YYYY年」(mo=13 標記)，假設 YYYY 是分頁最末段所屬年份，
+    # 首段年份 = YYYY − 總回轉次數。
+    if base_ym and base_ym[1] == 13:
+        running_year = base_ym[0] - total_rollovers
+
     cell_dates = {}  # (dr, col_i) -> datetime
     prev_mo = None
     for dr in date_row_indices:
