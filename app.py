@@ -425,20 +425,35 @@ hr {
     display: inline-block;
     min-width: 70px;
 }
-/* 本週 區塊 */
-.week-label {
-    display: inline-block;
+/* 本週 expander */
+[data-testid="stExpander"] {
+    background: #FFFDF7;
+    border: 1px solid #D7CCBE !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 3px rgba(93, 64, 55, 0.05);
+    margin-bottom: 1rem;
+}
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] details > summary {
     background: #6D4C41;
     color: #FFFDF7 !important;
-    padding: 6px 18px;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: 10px 16px !important;
+    border-radius: 5px !important;
     font-weight: 600;
-    letter-spacing: 0.15em;
-    margin-bottom: 0.8rem;
-    box-shadow: 0 2px 4px rgba(93, 64, 55, 0.15);
+    letter-spacing: 0.12em;
+    font-size: 1rem;
 }
-.week-label * { color: #FFFDF7 !important; }
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] summary span,
+[data-testid="stExpander"] summary div {
+    color: #FFFDF7 !important;
+}
+[data-testid="stExpander"] summary svg {
+    fill: #FFFDF7 !important;
+}
+[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: 12px 16px !important;
+}
 .week-day-header {
     color: #5D4037;
     font-size: 0.95rem;
@@ -631,40 +646,43 @@ for i in range(7):
 
 week_start_disp = week_days[0]["mmdd_short"]
 week_end_disp = week_days[-1]["mmdd_short"]
-st.markdown(
-    f'<div class="week-label">本 週 ・ {week_start_disp} ~ {week_end_disp}</div>',
-    unsafe_allow_html=True,
+# 首頁（未選剪輯師）預設展開，個人搜尋後預設收起
+week_expanded = len(selected) == 0
+week_expander = st.expander(
+    f"本 週 ・ {week_start_disp} ~ {week_end_disp}",
+    expanded=week_expanded,
 )
 
 week_date_objs = [d["date_obj"].date() for d in week_days]
 week_rows_all = df[df["full_date"].dt.date.isin(week_date_objs)]
 
-if week_rows_all.empty:
-    st.markdown(
-        '<div class="today-empty">本週沒有剪輯案件</div>',
-        unsafe_allow_html=True,
-    )
-else:
-    for day in week_days:
-        day_d = day["date_obj"].date()
-        day_rows = df[df["full_date"].dt.date == day_d]
-        if day_rows.empty:
-            continue
-        is_today_day = day_d == today_date
-        header_cls = "week-day-header is-today" if is_today_day else "week-day-header"
-        today_tag = "（今日）" if is_today_day else ""
+with week_expander:
+    if week_rows_all.empty:
         st.markdown(
-            f'<div class="{header_cls}">{day["mmdd_short"]}（{day["weekday"]}）{today_tag}</div>',
+            '<div class="today-empty">本週沒有剪輯案件</div>',
             unsafe_allow_html=True,
         )
-        for _, r in day_rows.iterrows():
-            link_html = ""
-            if r["連結"]:
-                link_html = f' <a class="case-link" href="{r["連結"]}" target="_blank">雲端</a>'
+    else:
+        for day in week_days:
+            day_d = day["date_obj"].date()
+            day_rows = df[df["full_date"].dt.date == day_d]
+            if day_rows.empty:
+                continue
+            is_today_day = day_d == today_date
+            header_cls = "week-day-header is-today" if is_today_day else "week-day-header"
+            today_tag = "（今日）" if is_today_day else ""
             st.markdown(
-                f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
+                f'<div class="{header_cls}">{day["mmdd_short"]}（{day["weekday"]}）{today_tag}</div>',
                 unsafe_allow_html=True,
             )
+            for _, r in day_rows.iterrows():
+                link_html = ""
+                if r["連結"]:
+                    link_html = f' <a class="case-link" href="{r["連結"]}" target="_blank">雲端</a>'
+                st.markdown(
+                    f'<div class="today-item"><strong>{r["剪輯"]}</strong>{r["案子"]}{link_html}</div>',
+                    unsafe_allow_html=True,
+                )
 
 st.markdown("---")
 
