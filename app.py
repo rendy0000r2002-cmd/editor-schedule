@@ -318,15 +318,102 @@ html, body, [class*="css"] {
     background-position: 0 0, 12px 12px;
 }
 section.main > div.block-container {
-    padding-top: 2.5rem;
+    padding-top: 1.2rem;
     padding-bottom: 3rem;
     max-width: 1200px;
 }
+/* 品牌橫幅：深色高科技 + 金色光暈 */
+.brand-banner {
+    position: relative;
+    margin: 0 0 1.6rem;
+    padding: 1.6rem 2.2rem;
+    background:
+        linear-gradient(135deg, #08101F 0%, #121B30 35%, #1C2744 50%, #121B30 65%, #08101F 100%);
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(232, 212, 168, 0.18);
+    border-top: 1px solid rgba(232, 212, 168, 0.28);
+    border-bottom: 1px solid rgba(232, 212, 168, 0.22);
+}
+.brand-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(0deg, transparent 0, transparent 26px, rgba(200, 220, 255, 0.025) 26px, rgba(200, 220, 255, 0.025) 27px),
+        repeating-linear-gradient(90deg, transparent 0, transparent 26px, rgba(200, 220, 255, 0.025) 26px, rgba(200, 220, 255, 0.025) 27px);
+    pointer-events: none;
+    z-index: 1;
+}
+.brand-banner::after {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 55%;
+    height: 180%;
+    background: radial-gradient(ellipse at center, rgba(232, 212, 168, 0.12) 0%, rgba(232, 212, 168, 0.04) 35%, transparent 65%);
+    pointer-events: none;
+    z-index: 1;
+}
+.brand-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1.3rem;
+}
+.brand-accent {
+    width: 3px;
+    height: 2rem;
+    background: linear-gradient(180deg, rgba(232, 212, 168, 0.2) 0%, #E8D4A8 50%, rgba(232, 212, 168, 0.2) 100%);
+    box-shadow: 0 0 10px rgba(232, 212, 168, 0.5);
+    flex-shrink: 0;
+}
+.brand-zh {
+    color: #E8D4A8;
+    font-size: 1.75rem;
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    font-family: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+    text-shadow: 0 0 22px rgba(232, 212, 168, 0.4);
+    padding-right: 0.4em;
+    line-height: 1;
+}
+.brand-divider {
+    width: 1px;
+    height: 1.6rem;
+    background: linear-gradient(180deg, transparent 0%, rgba(232, 212, 168, 0.6) 50%, transparent 100%);
+    flex-shrink: 0;
+}
+.brand-en {
+    color: #8FA3C0;
+    font-size: 0.72rem;
+    letter-spacing: 0.42em;
+    font-weight: 400;
+    padding-right: 0.42em;
+    font-family: "Courier New", monospace;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.brand-corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: rgba(232, 212, 168, 0.55);
+    z-index: 2;
+}
+.brand-corner.tl { top: 6px; left: 6px; border-top: 1px solid; border-left: 1px solid; }
+.brand-corner.tr { top: 6px; right: 6px; border-top: 1px solid; border-right: 1px solid; }
+.brand-corner.bl { bottom: 6px; left: 6px; border-bottom: 1px solid; border-left: 1px solid; }
+.brand-corner.br { bottom: 6px; right: 6px; border-bottom: 1px solid; border-right: 1px solid; }
 /* 主標 */
 .app-title {
-    font-size: 1.7rem;
+    font-size: 1.55rem;
     color: #3E2723;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     margin: 0;
     padding-bottom: 0.2rem;
     border-bottom: 2px double #8B6F47;
@@ -588,9 +675,25 @@ now = datetime.now(timezone(timedelta(hours=8)))
 today_str = now.strftime("%m/%d").lstrip("0").replace("/0", "/")
 today_padded = now.strftime("%m/%d")
 
+st.markdown(
+    '<div class="brand-banner">'
+    '<span class="brand-corner tl"></span>'
+    '<span class="brand-corner tr"></span>'
+    '<span class="brand-corner bl"></span>'
+    '<span class="brand-corner br"></span>'
+    '<div class="brand-content">'
+    '<div class="brand-accent"></div>'
+    '<div class="brand-zh">原初映像</div>'
+    '<div class="brand-divider"></div>'
+    '<div class="brand-en">ORIGIN ・ VISION ・ STUDIO</div>'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
 col_title, col_btn = st.columns([5, 1])
 with col_title:
-    st.markdown('<h1 class="app-title">原初映像影音製作 ・ 剪輯行程表</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="app-title">剪 輯 行 程 表</h1>', unsafe_allow_html=True)
     st.markdown(
         f'<div class="app-sub">每 5 分鐘自動更新 ・ 最後載入 {now.strftime("%Y-%m-%d %H:%M")} ・ 今天 {today_str}</div>',
         unsafe_allow_html=True,
