@@ -122,6 +122,32 @@ def remove_editor_tag(text) -> str:
     return cleaned if cleaned else text
 
 
+def pick_recent_sheet(service):
+    """挑選最新的 YYYY年M月 分頁（按年月排序，取最新有資料者）。"""
+    try:
+        meta = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+    except Exception:
+        return None, None
+    candidates = []
+    for s in meta.get('sheets', []):
+        title = s['properties'].get('title', '')
+        m = re.match(r'^(\d{4})年(\d{1,2})月$', title)
+        if not m:
+            continue
+        y, mo = int(m.group(1)), int(m.group(2))
+        rc = s['properties'].get('gridProperties', {}).get('rowCount', 0)
+        candidates.append((y, mo, title, rc))
+    if not candidates:
+        return None, None
+    candidates.sort(key=lambda c: (c[0], c[1]), reverse=True)
+    # 優先挑 rowCount > 100 的（跳過空分頁）
+    for y, mo, title, rc in candidates:
+        if rc > 100:
+            return title, (y, mo)
+    y, mo, title, _ = candidates[0]
+    return title, (y, mo)
+
+
 @st.cache_data(ttl=300)
 def load_and_parse():
     try:
@@ -129,9 +155,12 @@ def load_and_parse():
         if not creds:
             return None, creds_err or "無法取得 Google 憑證"
         service = build('sheets', 'v4', credentials=creds)
+        sheet_name, base_ym = pick_recent_sheet(service)
+        if not sheet_name:
+            sheet_name, base_ym = SHEET_NAME, None
         result = service.spreadsheets().get(
             spreadsheetId=SPREADSHEET_ID,
-            ranges=[SHEET_NAME],
+            ranges=[sheet_name],
             includeGridData=True
         ).execute()
     except Exception as e:
@@ -167,38 +196,34 @@ def load_and_parse():
     if not date_row_indices:
         return None, "找不到日期列"
 
-    half = len(date_row_indices) // 2
-    relevant = date_row_indices[half:] if half > 0 else date_row_indices
+    # 每列只取前 7 個日期格（週行事曆格式），避免右側殘留文字被誤判
+    def week_date_cols(row):
+        cols = [(ci, normalize_date(t)) for ci, (t, _) in enumerate(row) if is_date_cell(t)]
+        return cols[:7]
 
-    # Year rollover detection
-    date_row_to_year_flag = {}
-    prev_month = None
-    rolled_over = False
-    for dr in relevant:
-        header = grid[dr]
-        months_in_row = [
-            int(t.strip().split("/")[0])
-            for (t, _) in header
-            if is_date_cell(t) and "/" in t.strip()
-        ]
-        if not months_in_row:
-            continue
-        cur_month = min(months_in_row)
-        if prev_month is not None and cur_month < prev_month:
-            rolled_over = True
-        date_row_to_year_flag[dr] = rolled_over
-        prev_month = cur_month
+    # 逐格掃描：從分頁名推定基準年份，遇到月份回轉就 +1
+    now_tw = datetime.now(timezone(timedelta(hours=8)))
+    running_year = base_ym[0] if base_ym else now_tw.year
+    cell_dates = {}  # (dr, col_i) -> datetime
+    prev_mo = None
+    for dr in date_row_indices:
+        for col_i, date_str in week_date_cols(grid[dr]):
+            try:
+                mo, da = map(int, date_str.split("/"))
+            except Exception:
+                continue
+            if prev_mo is not None and mo < prev_mo:
+                running_year += 1
+            try:
+                cell_dates[(dr, col_i)] = datetime(year=running_year, month=mo, day=da)
+            except ValueError:
+                pass
+            prev_mo = mo
 
     records = []
     seen = set()
-    for dr in relevant:
-        is_current_year = date_row_to_year_flag.get(dr, False)
-        header = grid[dr]
-        date_cols = [
-            (ci, normalize_date(t))
-            for ci, (t, _) in enumerate(header)
-            if is_date_cell(t)
-        ]
+    for dr in date_row_indices:
+        date_cols = [ci for ci, _ in week_date_cols(grid[dr])]
         for offset in range(1, 5):
             next_idx = dr + offset
             if next_idx >= num_rows:
@@ -206,7 +231,10 @@ def load_and_parse():
             next_row = grid[next_idx]
             if sum(1 for (t, _) in next_row if is_date_cell(t)) >= 3:
                 break
-            for col_i, date_str in date_cols:
+            for col_i in date_cols:
+                dt = cell_dates.get((dr, col_i))
+                if dt is None:
+                    continue
                 if col_i >= len(next_row):
                     continue
                 cell_text, cell_url = next_row[col_i]
@@ -220,31 +248,32 @@ def load_and_parse():
                 case_name = remove_editor_tag(cell_text)
                 if not case_name:
                     continue
-                mo = int(date_str.split("/")[0])
-                if not is_current_year:
-                    continue
-                if not (3 <= mo <= 11):
-                    continue
-                key = (date_str, case_name[:20], editor)
+                key = (dt, case_name[:20], editor)
                 if key in seen:
                     continue
                 seen.add(key)
                 records.append({
-                    "拍攝日期": date_str,
+                    "full_date": dt,
+                    "拍攝日期": f"{dt.month}/{dt.day}",
                     "案子": case_name,
                     "剪輯": editor,
                     "連結": cell_url or "",
                 })
 
     if not records:
-        return None, "未找到含剪輯分配的記錄（格式需為：案名(剪輯師)）"
+        return None, f"工作表「{sheet_name}」找不到含剪輯分配的記錄"
 
     import pandas as pd
-    result_df = (
-        pd.DataFrame(records)
-        .sort_values("拍攝日期")
-        .reset_index(drop=True)
+    df_all = pd.DataFrame(records)
+    # 只保留近期：過去 60 天 ~ 未來 1 年
+    today_d = now_tw.date()
+    mask = (
+        (df_all["full_date"].dt.date >= today_d - timedelta(days=60)) &
+        (df_all["full_date"].dt.date <= today_d + timedelta(days=365))
     )
+    result_df = df_all[mask].sort_values("full_date").reset_index(drop=True)
+    if result_df.empty:
+        return None, f"工作表「{sheet_name}」沒有近期（±60天內）案件記錄"
     return result_df, None
 
 
@@ -569,7 +598,8 @@ if selected_months:
 st.markdown("---")
 
 # ── Today highlight（永遠顯示，不受篩選影響） ────────────────────────────
-today_rows_all = df[df["拍攝日期"].isin([today_str, today_padded])]
+today_date = now.date()
+today_rows_all = df[df["full_date"].dt.date == today_date]
 st.markdown(f'<div class="today-label">今 日 ・ {today_str}</div>', unsafe_allow_html=True)
 if today_rows_all.empty:
     st.markdown(
@@ -606,8 +636,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-week_date_keys = {d["mmdd_short"] for d in week_days} | {d["mmdd_padded"] for d in week_days}
-week_rows_all = df[df["拍攝日期"].isin(week_date_keys)]
+week_date_objs = [d["date_obj"].date() for d in week_days]
+week_rows_all = df[df["full_date"].dt.date.isin(week_date_objs)]
 
 if week_rows_all.empty:
     st.markdown(
@@ -616,10 +646,11 @@ if week_rows_all.empty:
     )
 else:
     for day in week_days:
-        day_rows = df[df["拍攝日期"].isin([day["mmdd_short"], day["mmdd_padded"]])]
+        day_d = day["date_obj"].date()
+        day_rows = df[df["full_date"].dt.date == day_d]
         if day_rows.empty:
             continue
-        is_today_day = day["mmdd_padded"] == today_padded
+        is_today_day = day_d == today_date
         header_cls = "week-day-header is-today" if is_today_day else "week-day-header"
         today_tag = "（今日）" if is_today_day else ""
         st.markdown(
@@ -650,7 +681,7 @@ cols = st.columns(2)
 
 for idx, editor in enumerate(show_editors):
     edf = (
-        filtered[filtered["剪輯"] == editor][["拍攝日期", "案子", "連結"]]
+        filtered[filtered["剪輯"] == editor][["full_date", "拍攝日期", "案子", "連結"]]
         .reset_index(drop=True)
     )
     if edf.empty:
@@ -658,7 +689,7 @@ for idx, editor in enumerate(show_editors):
 
     rows_html = ""
     for _, row in edf.iterrows():
-        is_today = row["拍攝日期"] in (today_str, today_padded)
+        is_today = row["full_date"].date() == today_date
         cls = "case-row today" if is_today else "case-row"
         link_html = ""
         if row["連結"]:
