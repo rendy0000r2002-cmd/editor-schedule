@@ -28,6 +28,7 @@ EDITOR_MAP = {
     "葉": "葉亭萱", "葉子": "葉亭萱",
     "瑞": "涂家瑞",
     "安": "安",
+    "蛇": "高心菱", "心菱": "高心菱",   # 2026-07 新剪輯師（小老師=黃雅憶）
 }
 
 EXCLUDE_KEYWORDS = ["出國", "自己案子", "家裡有事", "下雨延", "喜華不行", "休假", "請假", "不在"]
@@ -95,11 +96,13 @@ def normalize_date(text) -> str:
 
 
 def extract_editor(text) -> str | None:
+    """抓 (剪輯師)。剪輯師慣例標在條目尾巴 → 從最後一個括號往前找第一個對得上的
+    （2026-07-02 修：舊版只看第一個括號，「(哲)Amber外 仁喬知見 (蛇)」會抓到 (哲) 漏掉 (蛇)；
+    與 income_engine.extract_editor 同步修法）。"""
     if not isinstance(text, str) or not text.strip():
         return None
-    m = re.search(r"[（(]([^）)\n]+)[）)]", text)
-    if m:
-        raw = m.group(1).strip()
+    for raw in reversed(re.findall(r"[（(]([^）)\n]+)[）)]", text)):
+        raw = raw.strip()
         # 1) 完整字串比對（最優先）
         for key, val in EDITOR_MAP.items():
             if raw == key or raw.lower() == key.lower():
