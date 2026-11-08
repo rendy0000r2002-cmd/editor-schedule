@@ -231,6 +231,29 @@ def load_and_parse():
     # 首段年份 = YYYY − 總回轉次數。
     if base_ym and base_ym[1] == 13:
         running_year = base_ym[0] - total_rollovers
+        # 2026-11-08：分頁往後排到隔年（「2026年」最後一列 12/27–1/2）時，最末段其實是 YYYY+1，
+        # 照上面算會整張往前差一年 → 「沒有近期案件」。用最後一個日期校正：
+        # 最後日期早於今天 60 天以前 → 年份 +1；晚於今天 400 天以後 → −1。
+        last_md = None
+        for dr in date_row_indices:
+            for _, ds in week_date_cols(grid[dr]):
+                try:
+                    last_md = tuple(map(int, ds.split("/")))
+                except Exception:
+                    pass
+        if last_md:
+            today0 = now_tw.date()
+            for _ in range(3):
+                try:
+                    last_d = datetime(running_year + total_rollovers, last_md[0], last_md[1]).date()
+                except ValueError:
+                    break
+                if last_d < today0 - timedelta(days=60):
+                    running_year += 1
+                elif last_d > today0 + timedelta(days=400):
+                    running_year -= 1
+                else:
+                    break
 
     cell_dates = {}  # (dr, col_i) -> datetime
     prev_mo = None
